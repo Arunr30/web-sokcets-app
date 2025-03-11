@@ -1,16 +1,23 @@
-const ws = require('ws');
+const {Server} = require('socket.io') // why socket io, because websocket is very low level it annot broadcast to all users. socket io helps us fall back to long polling
+
+const http = require("http")
+
+const httpServer = http.createServer();
+httpServer.listen(3002)
 
 // instantiated
 
-const wsServer = new ws.WebSocketServer({
-  port: 3001
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*" // any one can come. if we want to restrict use origin:["http://localhost:3000", "kind of"]
+  }
 })
 
-wsServer.on("connection", (socket) => {
-  console.log("connection established");
+io.on("connection", (socket) => {
+  console.log(`user ${socket.id} is connected`)
   
   socket.on("message", (data) => {
-    const b = Buffer.from(data).toString();
-    socket.send(`${b}`)
+    console.log(data);
+    io.emit("message", `${socket.id.substring(0, 5)}: ${data}`);
   })
 })
